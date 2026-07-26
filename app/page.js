@@ -16,13 +16,23 @@ export default function EntryPage() {
   }, [loading, session, router]);
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center px-6">
-      <div className="w-full max-w-md text-center">
-        <p className="mb-2 text-xs uppercase tracking-[0.3em] text-docket-gold">
+    <main
+      className="relative flex min-h-screen flex-col items-center justify-center px-6 py-20"
+      style={{
+        backgroundImage: "url('/entry-bg.jpg')",
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      }}
+    >
+      {/* dark overlay so text and buttons stay readable over the photo */}
+      <div className="absolute inset-0 bg-black/35" />
+
+      <div className="relative z-10 w-full max-w-md text-center">
+        <p className="mb-2 text-xs uppercase tracking-[0.3em] text-docket-gold drop-shadow">
           Moot Training Platform
         </p>
-        <h1 className="mb-3 text-4xl font-bold text-white">The Docket</h1>
-        <p className="mb-10 text-gray-400">
+        <h1 className="mb-3 text-5xl font-extrabold text-white drop-shadow-lg">The Docket</h1>
+        <p className="mb-10 text-gray-200 drop-shadow">
           Sign up and you'll be assigned a code name and a newcomer number the moment
           you join. Log back in any time to pick up where you left off.
         </p>
@@ -30,13 +40,13 @@ export default function EntryPage() {
         <div className="flex flex-col gap-4">
           <Link
             href="/signup"
-            className="rounded-lg bg-docket-gold px-6 py-3 font-semibold text-docket-navy transition hover:bg-docket-gold2"
+            className="rounded-lg bg-docket-gold px-6 py-3 font-semibold text-docket-navy shadow-lg transition hover:bg-docket-gold2"
           >
             Sign Up
           </Link>
           <Link
             href="/login"
-            className="rounded-lg border border-docket-gold/50 px-6 py-3 font-semibold text-docket-gold transition hover:bg-docket-navy2"
+            className="rounded-lg border border-docket-gold/60 bg-docket-navy/90 px-6 py-3 font-semibold text-docket-gold shadow-lg transition hover:bg-docket-navy2"
           >
             Log In
           </Link>
