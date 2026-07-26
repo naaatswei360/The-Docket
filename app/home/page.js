@@ -30,13 +30,18 @@ export default function HomePage() {
   }, [user]);
 
   useEffect(() => {
-    if (!user || !profile) return;
-    const key = `docket_seen_${user.id}`;
-    const seen = typeof window !== 'undefined' && window.localStorage.getItem(key);
-    setIsReturning(!!seen);
-    setShowWelcome(true);
-    if (!seen && typeof window !== 'undefined') {
-      window.localStorage.setItem(key, '1');
+    if (!user || !profile || typeof window === 'undefined') return;
+    const everSeenKey = `docket_ever_seen_${user.id}`;
+    const shownThisSessionKey = `docket_shown_session_${user.id}`;
+
+    const everSeen = window.localStorage.getItem(everSeenKey);
+    const shownThisSession = window.sessionStorage.getItem(shownThisSessionKey);
+
+    if (!shownThisSession) {
+      setIsReturning(!!everSeen);
+      setShowWelcome(true);
+      window.sessionStorage.setItem(shownThisSessionKey, '1');
+      if (!everSeen) window.localStorage.setItem(everSeenKey, '1');
     }
   }, [user, profile]);
 
@@ -126,6 +131,9 @@ export default function HomePage() {
             </Link>
             <button
               onClick={async () => {
+                if (user && typeof window !== 'undefined') {
+                  window.sessionStorage.removeItem(`docket_shown_session_${user.id}`);
+                }
                 await supabase.auth.signOut();
                 router.push('/');
               }}
@@ -136,12 +144,12 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Daily tip */}
-        <div className="mx-auto mb-6 max-w-3xl rounded-xl border border-white/10 bg-docket-navy/70 px-6 py-5 text-center backdrop-blur-sm">
-          <p className="mb-1 text-xs uppercase tracking-widest text-docket-gold/80">
+        {/* Daily tip - full-width banner */}
+        <div className="-mx-8 mb-10 border-y border-white/10 bg-gradient-to-b from-docket-navy/90 to-docket-navy/70 px-8 py-12 text-center backdrop-blur-sm">
+          <p className="mb-2 text-xs uppercase tracking-[0.3em] text-docket-gold/80">
             Daily Docket Tip
           </p>
-          <p className="italic text-gray-200">"{tip}"</p>
+          <p className="mx-auto max-w-2xl text-xl italic text-gray-100">"{tip}"</p>
         </div>
 
         {/* Memorial / Oral choice */}
