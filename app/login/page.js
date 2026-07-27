@@ -15,11 +15,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
-
-  const [stage, setStage] = useState('password'); // 'password' | 'code'
-  const [code, setCode] = useState('');
-  const [codeError, setCodeError] = useState('');
-  const [verifying, setVerifying] = useState(false);
+  const [linkSent, setLinkSent] = useState(false);
 
   async function handlePasswordSubmit(e) {
     e.preventDefault();
@@ -40,18 +36,22 @@ export default function LoginPage() {
       typeof window !== 'undefined' && window.localStorage.getItem(trustedKey(email));
 
     if (isTrusted) {
-      // Correct password + trusted device -> straight in, no code needed.
+      // Correct password + trusted device -> straight in, no extra step.
       router.push('/plans');
       return;
     }
 
-    // Untrusted device: don't grant access yet. Sign back out and require
-    // an emailed code before finishing login.
+    // Untrusted device: don't grant access yet. Sign back out and email a
+    // one-time sign-in link instead - clicking it is what finishes login.
     await supabase.auth.signOut();
 
     const { error: otpError } = await supabase.auth.signInWithOtp({
       email,
-      options: { shouldCreateUser: false },
+      options: {
+        shouldCreateUser: false,
+        emailRedirectTo:
+          typeof window !== 'undefined' ? `${window.location.origin}/plans` : undefined,
+      },
     });
 
     if (otpError) {
@@ -60,33 +60,8 @@ export default function LoginPage() {
       return;
     }
 
-    setStage('code');
+    setLinkSent(true);
     setBusy(false);
-  }
-
-  async function handleCodeSubmit(e) {
-    e.preventDefault();
-    setCodeError('');
-    setVerifying(true);
-
-    const { error: verifyError } = await supabase.auth.verifyOtp({
-      email,
-      token: code,
-      type: 'email',
-    });
-
-    if (verifyError) {
-      setCodeError(verifyError.message);
-      setVerifying(false);
-      return;
-    }
-
-    // Code verified -> remember this device so future logins skip this step.
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem(trustedKey(email), '1');
-    }
-
-    router.push('/plans');
   }
 
   return (
@@ -112,107 +87,70 @@ export default function LoginPage() {
         </h1>
 
         <div className="relative rounded-2xl border border-white/10 bg-docket-navy/90 p-8 shadow-2xl backdrop-blur-sm">
-          {/* Stage 1: email + password */}
-          <form onSubmit={handlePasswordSubmit} autoComplete="on">
-            <h2 className="mb-6 text-xl font-bold text-white">Log In</h2>
+          {!linkSent ? (
+            <form onSubmit={handlePasswordSubmit} autoComplete="on">
+              <h2 className="mb-6 text-xl font-bold text-white">Log In</h2>
 
-            <label htmlFor="login-email" className="mb-1 block text-sm text-gray-300">
-              Email
-            </label>
-            <input
-              id="login-email"
-              name="email"
-              type="email"
-              required
-              autoComplete="username"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              disabled={stage === 'code'}
-              className="mb-4 w-full rounded-lg border border-gray-500 bg-white px-3 py-3 text-docket-navy disabled:opacity-60"
-            />
+              <label htmlFor="login-email" className="mb-1 block text-sm text-gray-300">
+                Email
+              </label>
+              <input
+                id="login-email"
+                name="email"
+                type="email"
+                required
+                autoComplete="username"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="mb-4 w-full rounded-lg border border-gray-500 bg-white px-3 py-3 text-docket-navy"
+              />
 
-            <label htmlFor="login-password" className="mb-1 block text-sm text-gray-300">
-              Password
-            </label>
-            <input
-              id="login-password"
-              name="password"
-              type="password"
-              required
-              autoComplete="current-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              disabled={stage === 'code'}
-              className="mb-6 w-full rounded-lg border border-gray-500 bg-white px-3 py-3 text-docket-navy disabled:opacity-60"
-            />
+              <label htmlFor="login-password" className="mb-1 block text-sm text-gray-300">
+                Password
+              </label>
+              <input
+                id="login-password"
+                name="password"
+                type="password"
+                required
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="mb-6 w-full rounded-lg border border-gray-500 bg-white px-3 py-3 text-docket-navy"
+              />
 
-            {error && <p className="mb-4 text-sm text-red-400">{error}</p>}
+              {error && <p className="mb-4 text-sm text-red-400">{error}</p>}
 
-            <button
-              type="submit"
-              disabled={busy || stage === 'code'}
-              className="w-full rounded-lg bg-docket-gold px-6 py-3 font-semibold text-docket-navy transition hover:bg-docket-gold2 disabled:opacity-60"
-            >
-              {busy ? 'Checking…' : 'Log In'}
-            </button>
+              <button
+                type="submit"
+                disabled={busy}
+                className="w-full rounded-lg bg-docket-gold px-6 py-3 font-semibold text-docket-navy transition hover:bg-docket-gold2 disabled:opacity-60"
+              >
+                {busy ? 'Checking…' : 'Log In'}
+              </button>
 
-            <p className="mt-6 text-center text-sm text-gray-300">
-              New here?{' '}
-              <Link href="/signup" className="text-docket-gold underline">
-                Sign up
-              </Link>
-            </p>
-          </form>
-
-          {/* Stage 2: verification code overlay (only for untrusted devices) */}
-          {stage === 'code' && (
-            <div className="absolute inset-0 flex flex-col justify-center rounded-2xl bg-docket-navy p-8">
+              <p className="mt-6 text-center text-sm text-gray-300">
+                New here?{' '}
+                <Link href="/signup" className="text-docket-gold underline">
+                  Sign up
+                </Link>
+              </p>
+            </form>
+          ) : (
+            <div className="text-center">
               <h2 className="mb-2 text-xl font-bold text-white">Check your email</h2>
               <p className="mb-6 text-sm text-gray-400">
-                We don't recognize this device yet. We sent a code to{' '}
-                <span className="text-gray-200">{email}</span> — enter it below to finish
-                logging in. Future logins on this device won't need this step.
+                We don't recognize this device yet. We sent a sign-in link to{' '}
+                <span className="text-gray-200">{email}</span> — open it and tap the link to
+                finish logging in. Future logins on this device won't need this step.
               </p>
-
-              <form onSubmit={handleCodeSubmit}>
-                <label htmlFor="login-code" className="mb-1 block text-sm text-gray-300">
-                  Verification code
-                </label>
-                <input
-                  id="login-code"
-                  name="code"
-                  type="text"
-                  inputMode="numeric"
-                  required
-                  autoFocus
-                  value={code}
-                  onChange={(e) => setCode(e.target.value)}
-                  className="mb-4 w-full rounded-lg border border-gray-500 bg-white px-3 py-3 text-center text-lg tracking-widest text-docket-navy"
-                  placeholder="••••••"
-                />
-
-                {codeError && <p className="mb-4 text-sm text-red-400">{codeError}</p>}
-
-                <button
-                  type="submit"
-                  disabled={verifying}
-                  className="w-full rounded-lg bg-docket-gold px-6 py-3 font-semibold text-docket-navy hover:bg-docket-gold2 disabled:opacity-60"
-                >
-                  {verifying ? 'Verifying…' : 'Verify & Log In'}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setStage('password');
-                    setCode('');
-                    setCodeError('');
-                  }}
-                  className="mt-4 w-full text-center text-sm text-gray-400 underline hover:text-gray-200"
-                >
-                  ← Back
-                </button>
-              </form>
+              <button
+                type="button"
+                onClick={() => setLinkSent(false)}
+                className="w-full text-center text-sm text-gray-400 underline hover:text-gray-200"
+              >
+                ← Back
+              </button>
             </div>
           )}
         </div>
