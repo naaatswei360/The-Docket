@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../../lib/supabaseClient';
@@ -12,6 +12,19 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+
+  // Clear whatever was left in these fields whenever this page is freshly
+  // shown - including when the browser restores it from its back/forward
+  // cache, which otherwise leaves the last-typed values sitting there.
+  useEffect(() => {
+    function clearFields() {
+      setEmail('');
+      setPassword('');
+    }
+    clearFields();
+    window.addEventListener('pageshow', clearFields);
+    return () => window.removeEventListener('pageshow', clearFields);
+  }, []);
 
   async function handleLogin(e) {
     e.preventDefault();
