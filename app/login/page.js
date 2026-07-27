@@ -13,6 +13,7 @@ export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [linkSent, setLinkSent] = useState(false);
@@ -108,16 +109,25 @@ export default function LoginPage() {
               <label htmlFor="login-password" className="mb-1 block text-sm text-gray-300">
                 Password
               </label>
-              <input
-                id="login-password"
-                name="password"
-                type="password"
-                required
-                autoComplete="current-password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="mb-6 w-full rounded-lg border border-gray-500 bg-white px-3 py-3 text-docket-navy"
-              />
+              <div className="relative mb-6">
+                <input
+                  id="login-password"
+                  name="password"
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  autoComplete="current-password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full rounded-lg border border-gray-500 bg-white px-3 py-3 pr-16 text-docket-navy"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-docket-navy/70 hover:text-docket-navy"
+                >
+                  {showPassword ? 'Hide' : 'Show'}
+                </button>
+              </div>
 
               {error && <p className="mb-4 text-sm text-red-400">{error}</p>}
 
