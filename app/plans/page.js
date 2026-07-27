@@ -36,13 +36,6 @@ export default function PlansPage() {
     if (!loading && !user) router.replace('/login');
   }, [loading, user, router]);
 
-  useEffect(() => {
-    if (user?.email && typeof window !== 'undefined') {
-      const key = `docket_trusted_device_${user.email.trim().toLowerCase()}`;
-      window.localStorage.setItem(key, '1');
-    }
-  }, [user]);
-
   async function startFree() {
     if (!user) return;
     setBusy(true);
