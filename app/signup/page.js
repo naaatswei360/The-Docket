@@ -10,9 +10,10 @@ export default function SignupPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
-  const [assigned, setAssigned] = useState(null); // { code_name, student_number }
+  const [assigned, setAssigned] = useState(null);
 
   async function handleSignup(e) {
     e.preventDefault();
@@ -28,7 +29,6 @@ export default function SignupPage() {
     }
 
     if (!data.session) {
-      // Email confirmation is required by the Supabase project's auth settings.
       setError(
         'Account created. Check your email to verify it, then log in — your code name and number will be assigned on first login.'
       );
@@ -66,27 +66,46 @@ export default function SignupPage() {
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center px-6">
-      <form onSubmit={handleSignup} className="w-full max-w-sm">
+      <form onSubmit={handleSignup} autoComplete="on" className="w-full max-w-sm">
         <h1 className="mb-6 text-2xl font-bold text-white">Sign Up</h1>
 
-        <label className="mb-1 block text-sm text-gray-300">Email</label>
+        <label htmlFor="signup-email" className="mb-1 block text-sm text-gray-300">
+          Email
+        </label>
         <input
+          id="signup-email"
+          name="email"
           type="email"
           required
+          autoComplete="username"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           className="mb-4 w-full rounded-lg border border-gray-600 bg-white px-3 py-2"
         />
 
-        <label className="mb-1 block text-sm text-gray-300">Password</label>
-        <input
-          type="password"
-          required
-          minLength={6}
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="mb-4 w-full rounded-lg border border-gray-600 bg-white px-3 py-2"
-        />
+        <label htmlFor="signup-password" className="mb-1 block text-sm text-gray-300">
+          Password
+        </label>
+        <div className="relative mb-4">
+          <input
+            id="signup-password"
+            name="new-password"
+            type={showPassword ? 'text' : 'password'}
+            required
+            minLength={6}
+            autoComplete="new-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full rounded-lg border border-gray-600 bg-white px-3 py-2 pr-16"
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword((v) => !v)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-docket-navy/70 hover:text-docket-navy"
+          >
+            {showPassword ? 'Hide' : 'Show'}
+          </button>
+        </div>
 
         {error && <p className="mb-4 text-sm text-red-400">{error}</p>}
 
