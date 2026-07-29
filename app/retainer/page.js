@@ -24,6 +24,27 @@ export default function RetainerPage() {
     if (!loading && !user) router.replace('/login');
   }, [loading, user, router]);
 
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from('profiles')
+      .select('name, gender, country, experience_level, goal, notes')
+      .eq('user_id', user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data) {
+          setForm({
+            name: data.name || '',
+            gender: data.gender || '',
+            country: data.country || '',
+            experience_level: data.experience_level || '',
+            goal: data.goal || '',
+            notes: data.notes || '',
+          });
+        }
+      });
+  }, [user]);
+
   function update(field, value) {
     setForm((f) => ({ ...f, [field]: value }));
   }
