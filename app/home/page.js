@@ -135,7 +135,9 @@ export default function HomePage() {
                   window.sessionStorage.removeItem(`docket_shown_session_${user.id}`);
                 }
                 await supabase.auth.signOut();
-                router.push('/');
+                if (typeof window !== 'undefined') {
+                  window.location.href = '/login';
+                }
               }}
               className="text-gray-200 hover:text-docket-gold"
             >
@@ -152,9 +154,9 @@ export default function HomePage() {
           <p className="mx-auto max-w-2xl text-xl italic text-gray-100">"{tip}"</p>
         </div>
 
-        {/* Memorial / Oral choice */}
+        {/* Memorial / Oral / Hot Seat choice */}
         {view === 'choose' && (
-          <div className="mx-auto mb-8 grid max-w-3xl gap-4 sm:grid-cols-2">
+          <div className="mx-auto mb-8 grid max-w-4xl gap-4 sm:grid-cols-3">
             <button
               onClick={() => setView('memorial-type')}
               className="rounded-xl border border-white/10 bg-docket-navy/70 p-6 text-left backdrop-blur-sm transition hover:border-docket-gold"
@@ -174,6 +176,17 @@ export default function HomePage() {
               <h2 className="mb-1 font-semibold text-white">Oral</h2>
               <p className="text-sm text-gray-400">
                 Live rounds with an assigned judge. Coming soon.
+              </p>
+            </Link>
+
+            <Link
+              href="/hotseat"
+              className="rounded-xl border border-white/10 bg-docket-navy/70 p-6 text-left backdrop-blur-sm transition hover:border-docket-gold"
+            >
+              <div className="mb-3 text-2xl">🔥</div>
+              <h2 className="mb-1 font-semibold text-white">The Hot Seat</h2>
+              <p className="text-sm text-gray-400">
+                60-second on-the-spot argument drills to sharpen quick thinking.
               </p>
             </Link>
           </div>
