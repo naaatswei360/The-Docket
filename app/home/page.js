@@ -154,9 +154,9 @@ Daily Docket Tip
 <p className="mx-auto max-w-2xl text-xl italic text-gray-100">"{tip}"</p>
 </div>
 
-{/* Memorial / Oral / Hot Seat choice */}
+{/* Memorial / Oral / References / Hot Seat choice */}
 {view === 'choose' && (
-<div className="mx-auto mb-8 grid max-w-4xl gap-4 sm:grid-cols-3">
+<div className="mx-auto mb-8 grid max-w-5xl gap-4 sm:grid-cols-2 lg:grid-cols-4">
 <button
 onClick={() => setView('memorial-type')}
 className="rounded-xl border border-white/10 bg-docket-navy/70 p-6 text-left backdrop-blur-sm transition hover:border-docket-gold"
@@ -176,6 +176,17 @@ className="rounded-xl border border-white/10 bg-docket-navy/70 p-6 text-left bac
 <h2 className="mb-1 font-semibold text-white">Oral</h2>
 <p className="text-sm text-gray-400">
 Live rounds with an assigned judge. Coming soon.
+</p>
+</Link>
+
+<Link
+href="/references"
+className="rounded-xl border border-white/10 bg-docket-navy/70 p-6 text-left backdrop-blur-sm transition hover:border-docket-gold"
+>
+<div className="mb-3 text-2xl">📋</div>
+<h2 className="mb-1 font-semibold text-white">References</h2>
+<p className="text-sm text-gray-400">
+Learn, build, and test OSCOLA citations.
 </p>
 </Link>
 
