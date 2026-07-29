@@ -154,7 +154,7 @@ Daily Docket Tip
 <p className="mx-auto max-w-2xl text-xl italic text-gray-100">"{tip}"</p>
 </div>
 
-{/* Memorial / Oral / References /Hot Seat choice */}
+{/* Memorial / Oral / Hot Seat choice */}
 {view === 'choose' && (
 <div className="mx-auto mb-8 grid max-w-4xl gap-4 sm:grid-cols-3">
 <button
@@ -176,17 +176,6 @@ className="rounded-xl border border-white/10 bg-docket-navy/70 p-6 text-left bac
 <h2 className="mb-1 font-semibold text-white">Oral</h2>
 <p className="text-sm text-gray-400">
 Live rounds with an assigned judge. Coming soon.
-</p>
-</Link>
-
-<Link
-href="/references"
-className="rounded-xl border border-white/10 bg-docket-navy/70 p-6 text-left backdrop-blur-sm transition hover:border-gray-400"
->
-<div className="mb-3 text-2xl">📋</div>
-<h2 className="mb-1 font-semibold text-white">References</h2>
-<p className="text-sm text-gray-400">
-Learn how to reference the OSCOLA way. Coming soon.
 </p>
 </Link>
 
