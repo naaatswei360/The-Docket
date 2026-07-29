@@ -15,8 +15,8 @@ export default function HotSeatPage() {
   const router = useRouter();
 
   const [country, setCountry] = useState('');
-  const [category, setCategory] = useState(null); // 'local' | 'international'
-  const [stage, setStage] = useState('choose'); // choose -> wheel -> confirm -> countdown -> planning -> speaking -> done
+  const [category, setCategory] = useState(null);
+  const [stage, setStage] = useState('choose');
   const [word, setWord] = useState('');
   const [spinning, setSpinning] = useState(false);
   const [countdownLabel, setCountdownLabel] = useState('Ready');
@@ -39,7 +39,6 @@ export default function HotSeatPage() {
       .then(({ data }) => setCountry(data?.country || ''));
   }, [user]);
 
-  // Countdown timer for planning + speaking stages
   useEffect(() => {
     if (stage !== 'planning' && stage !== 'speaking') return;
 
@@ -209,15 +208,9 @@ export default function HotSeatPage() {
 
           {!rating ? (
             <div className="flex justify-center gap-4 text-3xl">
-              <button onClick={() => setRating('rough')} title="Rough" className="hover:scale-110 transition">
-                😅
-              </button>
-              <button onClick={() => setRating('okay')} title="Okay" className="hover:scale-110 transition">
-                😐
-              </button>
-              <button onClick={() => setRating('strong')} title="Strong" className="hover:scale-110 transition">
-                💪
-              </button>
+              <button onClick={() => setRating('rough')} title="Rough" className="hover:scale-110 transition">😅</button>
+              <button onClick={() => setRating('okay')} title="Okay" className="hover:scale-110 transition">😐</button>
+              <button onClick={() => setRating('strong')} title="Strong" className="hover:scale-110 transition">💪</button>
             </div>
           ) : (
             <div className="flex flex-col gap-3">
