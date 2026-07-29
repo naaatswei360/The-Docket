@@ -1,441 +1,252 @@
-'use client';
+use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '../../components/AuthProvider';
+import { getTodaysTip } from '../../lib/dailyTip';
+import { supabase } from '../../lib/supabaseClient';
 
-export default function ReferencesSection() {
-  const [active, setActive] = useState('guide');
+export default function HomePage() {
+const { user, loading } = useAuth();
+const router = useRouter();
+const [profile, setProfile] = useState(null);
+const [view, setView] = useState('choose'); // choose -> memorial-type
+const [showWelcome, setShowWelcome] = useState(false);
+const [isReturning, setIsReturning] = useState(false);
 
-  return (
-    <section className="mx-auto mt-10 max-w-4xl px-2">
-      <div className="rounded-2xl border border-white/10 bg-docket-navy/80 p-6 backdrop-blur-sm shadow-xl">
-        <div className="mb-6 text-center">
-          <p className="mb-1 text-xs uppercase tracking-[0.3em] text-docket-gold/80">
-            References
-          </p>
-          <h2 className="text-2xl font-semibold text-white">
-            Learn, build and test OSCOLA citations
-          </h2>
-          <p className="mt-2 text-sm text-gray-300">
-            Choose a guided path, use a structured builder, or challenge yourself with citation games.
-          </p>
-        </div>
+useEffect(() => {
+if (!loading && !user) router.replace('/login');
+}, [loading, user, router]);
 
-        {/* Three boxes */}
-        <div className="mb-6 grid gap-4 sm:grid-cols-3">
-          <button
-            onClick={() => setActive('guide')}
-            className={`rounded-xl border bg-docket-navy/70 p-4 text-left backdrop-blur-sm transition ${
-              active === 'guide'
-                ? 'border-docket-gold shadow-lg'
-                : 'border-white/10 hover:border-docket-gold/60'
-            }`}
-          >
-            <div className="mb-2 text-2xl">🖥️</div>
-            <h3 className="mb-1 text-sm font-semibold text-white">
-              Step-by-step guide
-            </h3>
-            <p className="text-xs text-gray-300">
-              Simulated PC-style pop-ups that teach OSCOLA from basics to full citations, with marks and error feedback.
-            </p>
-          </button>
+useEffect(() => {
+if (!user) return;
+supabase
+.from('profiles')
+.select('code_name')
+.eq('user_id', user.id)
+.maybeSingle()
+.then(({ data }) => setProfile(data));
+}, [user]);
 
-          <button
-            onClick={() => setActive('ai')}
-            className={`rounded-xl border bg-docket-navy/70 p-4 text-left backdrop-blur-sm transition ${
-              active === 'ai'
-                ? 'border-docket-gold shadow-lg'
-                : 'border-white/10 hover:border-docket-gold/60'
-            }`}
-          >
-            <div className="mb-2 text-2xl">✨</div>
-            <h3 className="mb-1 text-sm font-semibold text-white">
-              AI-powered builder
-            </h3>
-            <p className="text-xs text-gray-300">
-              Provide case, statute, book or article details and get a structured OSCOLA-style draft citation.
-            </p>
-          </button>
+useEffect(() => {
+if (!user || !profile || typeof window === 'undefined') return;
+const everSeenKey = `docket_ever_seen_${user.id}`;
+const shownThisSessionKey = `docket_shown_session_${user.id}`;
 
-          <button
-            onClick={() => setActive('games')}
-            className={`rounded-xl border bg-docket-navy/70 p-4 text-left backdrop-blur-sm transition ${
-              active === 'games'
-                ? 'border-docket-gold shadow-lg'
-                : 'border-white/10 hover:border-docket-gold/60'
-            }`}
-          >
-            <div className="mb-2 text-2xl">🎮</div>
-            <h3 className="mb-1 text-sm font-semibold text-white">
-              Games
-            </h3>
-            <p className="text-xs text-gray-300">
-              Correct citations, spot errors, and survive a hostile court judge in a quiz with health points.
-            </p>
-          </button>
-        </div>
+const everSeen = window.localStorage.getItem(everSeenKey);
+const shownThisSession = window.sessionStorage.getItem(shownThisSessionKey);
 
-        {/* Detail panel */}
-        <div className="rounded-xl border border-white/10 bg-docket-navy/70 p-4 text-sm text-gray-200 backdrop-blur-sm">
-          {active === 'guide' && <GuidePanel />}
-          {active === 'ai' && <AiPanel />}
-          {active === 'games' && <GamesPanel />}
-        </div>
-      </div>
-    </section>
-  );
+if (!shownThisSession) {
+setIsReturning(!!everSeen);
+setShowWelcome(true);
+window.sessionStorage.setItem(shownThisSessionKey, '1');
+if (!everSeen) window.localStorage.setItem(everSeenKey, '1');
 }
+}, [user, profile]);
 
-function GuidePanel() {
-  const [step, setStep] = useState(1);
-  const [citation, setCitation] = useState('');
-  const [feedback, setFeedback] = useState('');
+const tip = getTodaysTip();
 
-  const checkCitation = () => {
-    if (!citation.trim()) {
-      setFeedback('Start by drafting a full citation so I can mark it.');
-      return;
-    }
+return (
+<main
+className="relative min-h-screen"
+style={{
+backgroundImage: "url('/home-bg.jpg')",
+backgroundSize: 'cover',
+backgroundPosition: 'center',
+backgroundAttachment: 'fixed',
+}}
+>
+<div className="absolute inset-0 bg-black/45" />
 
-    // Very simple placeholder feedback – later we can add real OSCOLA checks
-    const hints = [];
-    if (!citation.includes('[') || !citation.includes(']')) {
-      hints.push('Add a neutral citation in square brackets (e.g. [2020]).');
-    }
-    if (!citation.toLowerCase().includes('v')) {
-      hints.push("Include 'v' between party names for a case (e.g. Republic v Mensah).");
+{/* Welcome popup */}
+{showWelcome && profile && (
+<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-6">
+<div className="w-full max-w-sm rounded-2xl border border-docket-gold/40 bg-docket-navy p-8 text-center shadow-2xl">
+<p className="mb-2 text-xs uppercase tracking-widest text-docket-gold">
+{isReturning ? 'Welcome back' : 'Welcome'}
+</p>
+<h2 className="mb-6 text-2xl font-bold text-white">{profile.code_name}</h2>
+<button
+onClick={() => setShowWelcome(false)}
+className="w-full rounded-lg bg-docket-gold px-6 py-3 font-semibold text-docket-navy hover:bg-docket-gold2"
+>
+Continue
+</button>
+</div>
+</div>
+)}
 
-    }
+{/* Left sidebar */}
+<aside className="fixed left-0 top-0 z-20 flex h-full w-44 flex-col gap-1 border-r border-white/10 bg-docket-navy/80 px-5 py-6 backdrop-blur-sm">
+<button
+onClick={() => router.back()}
+className="mb-8 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-docket-navy hover:bg-white"
+aria-label="Back"
+>
+←
+</button>
 
-    if (hints.length === 0) {
-      setFeedback('Strong first attempt. Check punctuation and ordering against OSCOLA to refine.');
-    } else {
-      setFeedback(`Feedback:\n- ${hints.join('\n- ')}`);
-    }
-  };
+<span className="mb-3 text-xs font-semibold uppercase tracking-widest text-docket-gold">
+Home
+</span>
+<span className="mb-3 text-xs uppercase tracking-widest text-gray-500 opacity-60">
+About <span className="text-[10px]">(soon)</span>
+</span>
+<span className="mb-3 text-xs uppercase tracking-widest text-gray-500 opacity-60">
+Blog <span className="text-[10px]">(soon)</span>
+</span>
+<Link
+href="/help"
+className="mb-3 text-xs uppercase tracking-widest text-gray-300 hover:text-docket-gold"
+>
+Contact
+</Link>
+<Link
+href="/plans"
+className="mb-3 text-xs uppercase tracking-widest text-gray-300 hover:text-docket-gold"
+>
+Premium
+</Link>
+</aside>
 
-  return (
-    <div>
-      <h3 className="mb-2 text-base font-semibold text-white">
-        Step-by-step OSCOLA guide
-      </h3>
-      <p className="mb-3 text-xs text-gray-300">
-        This simulates a tutor on your screen: follow the steps, draft, then get quick feedback, marks and error notes.
-      </p>
+{/* Main content */}
+<div className="relative z-10 ml-44 min-h-screen px-8 py-6">
+{/* Top bar */}
+<div className="mb-8 flex items-center justify-between">
+<div>
+<h1 className="text-3xl font-bold tracking-wide text-docket-gold">THE DOCKET</h1>
+{profile && <p className="text-sm text-gray-300">{profile.code_name}</p>}
+</div>
 
-      <div className="mb-2 flex gap-2 text-xs">
-        <button
-          onClick={() => setStep(1)}
-          className={`rounded-full border px-3 py-1 ${
-            step === 1
-              ? 'border-docket-gold bg-docket-gold/10 text-docket-gold'
-              : 'border-white/20 text-gray-200'
-          }`}
-        >
-          1. Basics
-        </button>
-        <button
-          onClick={() => setStep(2)}
-          className={`rounded-full border px-3 py-1 ${
-            step === 2
-              ? 'border-docket-gold bg-docket-gold/10 text-docket-gold'
-              : 'border-white/20 text-gray-200'
-          }`}
-        >
-          2. Pattern
-        </button>
-        <button
-          onClick={() => setStep(3)}
-          className={`rounded-full border px-3 py-1 ${
-            step === 3
-              ? 'border-docket-gold bg-docket-gold/10 text-docket-gold'
-              : 'border-white/20 text-gray-200'
-          }`}
-        >
-          3. Draft
-        </button>
-      </div>
-
-      <div className="mb-3 rounded-lg border border-white/15 bg-black/30 p-3 text-xs text-gray-200">
-        {step === 1 && (
-          <p>
-            Step 1: Decide what you are citing (case, statute, article, book). Focus on cases for now.
-          </p>
-        )}
-        {step === 2 && (
-          <p>
-            Step 2: For a case, think: party names, neutral citation, court, year. OSCOLA cares about order and brackets.
-          </p>
-        )}
-        {step === 3 && (
-          <p>
-            Step 3: Draft your citation below as if you were submitting to a moot judge.
-          </p>
-        )}
-      </div>
-
-      <textarea
-        className="mb-2 w-full rounded-lg border border-white/15 bg-black/40 p-2 text-xs text-gray-100"
-        rows={3}
-        placeholder="Type your OSCOLA case citation here..."
-        value={citation}
-        onChange={(e) => setCitation(e.target.value)}
-      />
-
-      <button
-        onClick={checkCitation}
-        className="rounded-full bg-docket-gold px-4 py-2 text-xs font-semibold text-docket-navy hover:bg-docket-gold2"
-      >
-        Mark my citation
-      </button>
-
-      {feedback && (
-        <pre className="mt-2 whitespace-pre-wrap rounded-md bg-black/40 p-2 text-xs text-gray-100">
-          {feedback}
-        </pre>
-      )}
-    </div>
-  );
+<div className="flex items-center gap-6 text-xs font-semibold uppercase tracking-widest">
+<span className="cursor-not-allowed text-gray-500 opacity-60">
+Rankings <span className="text-[10px]">(soon)</span>
+</span>
+<Link href="/help" className="text-gray-200 hover:text-docket-gold">
+Customer Support
+</Link>
+<Link href="/retainer" className="text-gray-200 hover:text-docket-gold">
+Settings
+</Link>
+<button
+onClick={async () => {
+if (user && typeof window !== 'undefined') {
+window.sessionStorage.removeItem(`docket_shown_session_${user.id}`);
 }
-
-function AiPanel() {
-  const [type, setType] = useState('case');
-  const [details, setDetails] = useState('');
-  const [output, setOutput] = useState('');
-
-  const buildCitation = () => {
-    if (!details.trim()) {
-      setOutput('Add the source details first so I can structure them.');
-      return;
-    }
-
-    if (type === 'case') {
-      setOutput(
-        `Draft OSCOLA case citation based on your input:\n${details}\n\nPattern: Party v Party [year] report court.`
-      );
-    } else if (type === 'article') {
-      setOutput(
-        `Draft OSCOLA article citation based on your input:\n${details}\n\nPattern: Author, 'Title' (year) volume journal page.`
-      );
-    } else {
-      setOutput(
-        `Draft OSCOLA source citation based on your input:\n${details}\n\nPattern depends on whether this is a book, statute or report.`
-      );
-    }
-  };
-
-  return (
-    <div>
-      <h3 className="mb-2 text-base font-semibold text-white">
-        AI-powered citation builder (prototype)
-      </h3>
-      <p className="mb-3 text-xs text-gray-300">
-        Eventually this will be fully AI-powered. For now, it structures your details into a clear OSCOLA pattern.
-      </p>
-
-      <div className="mb-2 flex items-center gap-2 text-xs">
-        <span className="text-gray-300">Source type:</span>
-        <select
-          className="rounded-lg border border-white/20 bg-black/40 px-2 py-1 text-xs text-gray-100"
-          value={type}
-          onChange={(e) => setType(e.target.value)}
-        >
-          <option value="case">Case</option>
-          <option value="article">Article</option>
-          <option value="book">Book / statute</option>
-        </select>
-      </div>
-
-      <textarea
-        className="mb-2 w-full rounded-lg border border-white/15 bg-black/40 p-2 text-xs text-gray-100"
-        rows={3}
-        placeholder="Paste or type the raw details (party names, citation, journal metadata, etc.)..."
-        value={details}
-        onChange={(e) => setDetails(e.target.value)}
-      />
-
-      <button
-        onClick={buildCitation}
-        className="rounded-full bg-docket-gold px-4 py-2 text-xs font-semibold text-docket-navy hover:bg-docket-gold2"
-      >
-        Build draft OSCOLA citation
-      </button>
-
-      {output && (
-        <pre className="mt-2 whitespace-pre-wrap rounded-md bg-black/40 p-2 text-xs text-gray-100">
-          {output}
-        </pre>
-      )}
-    </div>
-  );
+await supabase.auth.signOut();
+if (typeof window !== 'undefined') {
+window.location.href = '/login';
 }
+}}
+className="text-gray-200 hover:text-docket-gold"
+>
+Log Out
+</button>
+</div>
+</div>
 
-function GamesPanel() {
-  const [mode, setMode] = useState('write');
-  const [hp, setHp] = useState(3);
-  const [answer, setAnswer] = useState('');
-  const [feedback, setFeedback] = useState('');
+{/* Daily tip - full-width banner */}
+<div className="-mx-8 mb-10 border-y border-white/10 bg-gradient-to-b from-docket-navy/90 to-docket-navy/70 px-8 py-12 text-center backdrop-blur-sm">
+<p className="mb-2 text-xs uppercase tracking-[0.3em] text-docket-gold/80">
+Daily Docket Tip
+</p>
+<p className="mx-auto max-w-2xl text-xl italic text-gray-100">"{tip}"</p>
+</div>
 
-  const quizPrompt =
-    'Write a proper OSCOLA-style citation for: Republic v Mensah, [2020] GHASC 12.';
-  const quizModel = 'Republic v Mensah [2020] GHASC 12 (SC)';
-  const errorPrompt =
-    'Spot the error in: Republic v Mensah (2020) 12 GHASC.';
-  const errorModel =
-    'Neutral citations use square brackets and correct ordering, e.g. [2020] GHASC 12.';
+{/* Memorial / Oral / References /Hot Seat choice */}
+{view === 'choose' && (
+<div className="mx-auto mb-8 grid max-w-4xl gap-4 sm:grid-cols-3">
+<button
+onClick={() => setView('memorial-type')}
+className="rounded-xl border border-white/10 bg-docket-navy/70 p-6 text-left backdrop-blur-sm transition hover:border-docket-gold"
+>
+<div className="mb-3 text-2xl">📄</div>
+<h2 className="mb-1 font-semibold text-white">Memorial (Written)</h2>
+<p className="text-sm text-gray-400">
+Draft a written memorial and get structured AI feedback on it.
+</p>
+</button>
 
-  const hostileOptions = [
-    'Republic v Mensah [2020] GHASC 12 (SC)',
-    'Republic v Mensah (2020) GHASC 12',
-    'Mensah v Republic [2020] SC GHASC',
-  ];
+<Link
+href="/moot/oral"
+className="rounded-xl border border-white/10 bg-docket-navy/70 p-6 text-left backdrop-blur-sm transition hover:border-gray-400"
+>
+<div className="mb-3 text-2xl">🎙️</div>
+<h2 className="mb-1 font-semibold text-white">Oral</h2>
+<p className="text-sm text-gray-400">
+Live rounds with an assigned judge. Coming soon.
+</p>
+</Link>
 
-  const handleSubmitWrite = () => {
-    if (!answer.trim()) {
-      setFeedback('Write your answer first.');
-      return;
-    }
-    setFeedback(`Your answer:\n${answer}\n\nModel answer:\n${quizModel}`);
-  };
+<Link
+href="/references"
+className="rounded-xl border border-white/10 bg-docket-navy/70 p-6 text-left backdrop-blur-sm transition hover:border-gray-400"
+>
+<div className="mb-3 text-2xl">📋</div>
+<h2 className="mb-1 font-semibold text-white">References</h2>
+<p className="text-sm text-gray-400">
+Learn how to reference the OSCOLA way. Coming soon.
+</p>
+</Link>
 
-  const handleSubmitError = () => {
-    if (!answer.trim()) {
-      setFeedback('Describe what you think the error is.');
-      return;
-    }
-    setFeedback(`Your answer:\n${answer}\n\nKey idea:\n${errorModel}`);
-  };
+<Link
+href="/hotseat"
+className="rounded-xl border border-white/10 bg-docket-navy/70 p-6 text-left backdrop-blur-sm transition hover:border-docket-gold"
+>
+<div className="mb-3 text-2xl">🔥</div>
+<h2 className="mb-1 font-semibold text-white">The Hot Seat</h2>
+<p className="text-sm text-gray-400">
+60-second on-the-spot argument drills to sharpen quick thinking.
+</p>
+</Link>
+</div>
+)}
 
-  const chooseHostile = (index) => {
-    if (index === 0) {
-      setFeedback(
-        "Correct. The judge (reluctantly) lets you continue. You've survived this round."
-      );
-    } else {
-      const newHp = hp - 1;
-      setHp(newHp);
-      setFeedback(
-        `Wrong. The judge is unimpressed. Health points remaining: ${newHp}.`
-      );
-    }
-  };
+{view === 'memorial-type' && (
+<div className="mx-auto mb-8 max-w-3xl">
+<button
+onClick={() => setView('choose')}
+className="mb-4 text-sm text-gray-300 underline hover:text-white"
+>
+← Back
+</button>
+<div className="grid gap-4 sm:grid-cols-3">
+<Link
+href="/moot/memorial"
+className="rounded-xl border border-white/10 bg-docket-navy/70 p-5 text-left backdrop-blur-sm transition hover:border-docket-gold"
+>
+<h3 className="mb-1 font-semibold text-docket-gold">Curated</h3>
+<p className="text-sm text-gray-400">One general moot problem, ready to go.</p>
+</Link>
 
-  return (
-    <div>
-      <h3 className="mb-2 text-base font-semibold text-white">
-        Citation games
-      </h3>
-      <p className="mb-3 text-xs text-gray-300">
-        Three mini-games: write the correct citation, spot the error, and a hostile judge quiz with health points.
-      </p>
+<div className="rounded-xl border border-white/10 bg-docket-navy/50 p-5 opacity-70 backdrop-blur-sm">
+<h3 className="mb-1 font-semibold text-gray-300">Specialized</h3>
+<p className="text-sm text-gray-500">Subject-specific problem sets. Coming soon.</p>
+</div>
 
-      <div className="mb-3 flex gap-2 text-xs">
-        <button
-          onClick={() => {
-            setMode('write');
-            setFeedback('');
-            setAnswer('');
-          }}
-          className={`rounded-full border px-3 py-1 ${
-            mode === 'write'
-              ? 'border-docket-gold bg-docket-gold/10 text-docket-gold'
-              : 'border-white/20 text-gray-200'
-          }`}
-        >
-          Write the citation
-        </button>
-        <button
-          onClick={() => {
-            setMode('error');
-            setFeedback('');
-            setAnswer('');
-          }}
-          className={`rounded-full border px-3 py-1 ${
-            mode === 'error'
-              ? 'border-docket-gold bg-docket-gold/10 text-docket-gold'
-              : 'border-white/20 text-gray-200'
-          }`}
-        >
-          Spot the error
-        </button>
-        <button
-          onClick={() => {
-            setMode('hostile');
-            setFeedback('');
-          }}
-          className={`rounded-full border px-3 py-1 ${
-            mode === 'hostile'
-              ? 'border-docket-gold bg-docket-gold/10 text-docket-gold'
-              : 'border-white/20 text-gray-200'
-          }`}
-        >
-          Hostile judge quiz
-        </button>
-      </div>
+<div className="rounded-xl border border-white/10 bg-docket-navy/50 p-5 opacity-70 backdrop-blur-sm">
+<h3 className="mb-1 font-semibold text-gray-300">Freestyle</h3>
+<p className="text-sm text-gray-500">Bring your own facts. Coming soon.</p>
+</div>
+</div>
+</div>
+)}
 
-      {mode === 'write' && (
-        <>
-          <div className="mb-2 rounded-lg border border-white/15 bg-black/30 p-2 text-xs text-gray-200">
-            {quizPrompt}
-          </div>
-          <textarea
-            className="mb-2 w-full rounded-lg border border-white/15 bg-black/40 p-2 text-xs text-gray-100"
-            rows={3}
-            value={answer}
-            onChange={(e) => setAnswer(e.target.value)}
-          />
-          <button
-            onClick={handleSubmitWrite}
-            className="rounded-full bg-docket-gold px-4 py-2 text-xs font-semibold text-docket-navy hover:bg-docket-gold2"
-          >
-            Submit
-          </button>
-        </>
-      )}
+<div className="text-center">
+<Link
+href="/submissions"
+className="inline-block rounded-full bg-docket-gold px-6 py-2 font-semibold text-docket-navy hover:bg-docket-gold2"
+>
+View my past submissions
+</Link>
+</div>
 
-      {mode === 'error' && (
-        <>
-          <div className="mb-2 rounded-lg border border-white/15 bg-black/30 p-2 text-xs text-gray-200">
-            {errorPrompt}
-          </div>
-          <textarea
-            className="mb-2 w-full rounded-lg border border-white/15 bg-black/40 p-2 text-xs text-gray-100"
-            rows={3}
-            value={answer}
-            onChange={(e) => setAnswer(e.target.value)}
-          />
-          <button
-            onClick={handleSubmitError}
-            className="rounded-full bg-docket-gold px-4 py-2 text-xs font-semibold text-docket-navy hover:bg-docket-gold2"
-          >
-            Check
-          </button>
-        </>
-      )}
-
-      {mode === 'hostile' && (
-        <>
-          <p className="mb-2 text-xs text-gray-200">
-            Health points: <span className="font-semibold">{hp}</span>
-          </p>
-          <div className="mb-2 grid gap-2 text-xs sm:grid-cols-3">
-            {hostileOptions.map((opt, idx) => (
-              <button
-                key={idx}
-                onClick={() => chooseHostile(idx)}
-                className="rounded-lg border border-white/20 bg-black/40 p-2 text-left text-gray-100 hover:border-docket-gold/70"
-              >
-                {opt}
-              </button>
-            ))}
-          </div>
-        </>
-      )}
-
-      {feedback && (
-        <pre className="mt-2 whitespace-pre-wrap rounded-md bg-black/40 p-2 text-xs text-gray-100">
-          {feedback}
-        </pre>
-      )}
-    </div>
-  );
+<div className="mt-16 text-center text-xs text-gray-400">
+<p>Powered by AI</p>
+<p>© 2026 The Docket</p>
+</div>
+</div>
+</main>
+);
 }
