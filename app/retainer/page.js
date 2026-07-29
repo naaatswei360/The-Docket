@@ -12,6 +12,7 @@ export default function RetainerPage() {
   const [form, setForm] = useState({
     name: '',
     gender: '',
+    country: '',
     experience_level: '',
     goal: '',
     notes: '',
@@ -74,6 +75,14 @@ export default function RetainerPage() {
           <option value="male">Male</option>
           <option value="other">Other</option>
         </select>
+
+        <label className="mb-1 block text-sm text-gray-300">Country</label>
+        <input
+          value={form.country}
+          onChange={(e) => update('country', e.target.value)}
+          placeholder="e.g. Nigeria"
+          className="mb-4 w-full rounded-lg border border-gray-600 bg-white px-3 py-2"
+        />
 
         <label className="mb-1 block text-sm text-gray-300">Experience level</label>
         <select
