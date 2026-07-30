@@ -105,9 +105,9 @@ export default function ReferencesGuidePage() {
           ← Back to References
         </Link>
 
-        <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
-          {/* Left: simulated PC / teaching frame */}
-          <div className="overflow-hidden rounded-2xl border border-white/10 bg-black shadow-2xl">
+        <div className="grid gap-6 lg:grid-cols-[360px_1fr] lg:items-start">
+          {/* Left: simulated PC / teaching frame — slim, clear side panel */}
+          <div className="overflow-hidden rounded-2xl border border-white/10 bg-black shadow-2xl lg:sticky lg:top-10">
             {/* title bar */}
             <div className="flex items-center gap-2 border-b border-white/10 bg-[#111826] px-4 py-2">
               <span className="h-3 w-3 rounded-full bg-red-500/80" />
@@ -277,8 +277,8 @@ export default function ReferencesGuidePage() {
             </div>
           </div>
 
-          {/* Right: live Word simulator, mirroring whatever's being taught */}
-          <div className="lg:sticky lg:top-10">
+          {/* Right: live Word simulator — the main screen */}
+          <div>
             <p className="mb-2 text-xs uppercase tracking-widest text-gray-500">
               Watch it applied live
             </p>
