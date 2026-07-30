@@ -191,7 +191,7 @@ Learn, build, and test OSCOLA citations.
 </Link>
 
 <Link
-href="/references/toa-toc"
+href="/tables"
 className="rounded-xl border border-white/10 bg-docket-navy/70 p-6 text-left backdrop-blur-sm transition hover:border-docket-gold"
 >
 <div className="mb-3 text-2xl">📑</div>

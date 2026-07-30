@@ -3,9 +3,9 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '../../../components/AuthProvider';
-import { supabase } from '../../../lib/supabaseClient';
-import WordSimulator from '../../../components/WordSimulator';
+import { useAuth } from '../../components/AuthProvider';
+import { supabase } from '../../lib/supabaseClient';
+import WordSimulator from '../../components/WordSimulator';
 import {
   tocLessons,
   tocFinalExercise,
@@ -13,7 +13,7 @@ import {
   toaLessons,
   toaFinalExercise,
   gradeToaFinalExercise,
-} from '../../../lib/tocToaGuide';
+} from '../../lib/tocToaGuide';
 
 const TRACKS = {
   toc: {
@@ -162,8 +162,8 @@ export default function TocToaGuidePage() {
   return (
     <main className="min-h-screen bg-[#050810] px-6 py-10">
       <div className="mx-auto max-w-[1240px]">
-        <Link href="/references" className="mb-6 inline-block text-sm text-gray-400 underline hover:text-gray-200">
-          ← Back to References
+        <Link href="/home" className="mb-6 inline-block text-sm text-gray-400 underline hover:text-gray-200">
+          ← Back to Home
         </Link>
 
         {/* Choice screen */}
@@ -368,10 +368,10 @@ export default function TocToaGuidePage() {
                         Try the other track
                       </button>
                       <Link
-                        href="/references"
+                        href="/home"
                         className="rounded-lg border border-gray-500 px-6 py-3 font-semibold text-gray-300 hover:bg-docket-navy2"
                       >
-                        Back to References
+                        Back to Home
                       </Link>
                     </div>
                   </div>
