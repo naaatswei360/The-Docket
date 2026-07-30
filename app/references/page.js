@@ -3,10 +3,10 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '../../../components/AuthProvider';
-import { supabase } from '../../../lib/supabaseClient';
-import WordSimulator from '../../../components/WordSimulator';
-import { guideLessons, guideFinalExercise, gradeFinalExercise } from '../../../lib/oscolaGuide';
+import { useAuth } from '../../components/AuthProvider';
+import { supabase } from '../../lib/supabaseClient';
+import WordSimulator from '../../components/WordSimulator';
+import { guideLessons, guideFinalExercise, gradeFinalExercise } from '../../lib/oscolaGuide';
 
 export default function ReferencesGuidePage() {
   const { user, loading } = useAuth();
