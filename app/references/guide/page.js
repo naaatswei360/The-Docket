@@ -18,7 +18,7 @@ export default function ReferencesGuidePage() {
   const [checkInChoice, setCheckInChoice] = useState(null);
   const [lessonScore, setLessonScore] = useState(0);
 
-  const [exerciseAnswer, setExerciseAnswer] = useState('');
+  const [exerciseDoc, setExerciseDoc] = useState({ footnoteText: '' });
   const [exerciseResult, setExerciseResult] = useState(null);
   const [saveStatus, setSaveStatus] = useState('idle');
 
@@ -54,10 +54,9 @@ export default function ReferencesGuidePage() {
     }
   }
 
-  function submitExercise(e) {
-    e.preventDefault();
-    if (!exerciseAnswer.trim()) return;
-    const result = gradeFinalExercise(exerciseAnswer);
+  function submitExercise() {
+    if (!exerciseDoc.footnoteText?.trim()) return;
+    const result = gradeFinalExercise(exerciseDoc.footnoteText);
     setExerciseResult(result);
     setStage('results');
   }
@@ -85,7 +84,7 @@ export default function ReferencesGuidePage() {
     setPhase('teach');
     setCheckInChoice(null);
     setLessonScore(0);
-    setExerciseAnswer('');
+    setExerciseDoc({ footnoteText: '' });
     setExerciseResult(null);
     setSaveStatus('idle');
   }
@@ -200,22 +199,27 @@ export default function ReferencesGuidePage() {
                       <li key={line}>{line}</li>
                     ))}
                   </ul>
-                  <form onSubmit={submitExercise}>
-                    <textarea
-                      value={exerciseAnswer}
-                      onChange={(e) => setExerciseAnswer(e.target.value)}
-                      rows={3}
-                      placeholder="Type the full citation…"
-                      className="mb-4 w-full rounded-lg border border-gray-500 bg-white px-3 py-3 text-docket-navy"
-                    />
-                    <button
-                      type="submit"
-                      disabled={!exerciseAnswer.trim()}
-                      className="w-full rounded-lg bg-docket-gold px-6 py-3 font-semibold text-docket-navy transition hover:bg-docket-gold2 disabled:opacity-60"
-                    >
-                      Submit
-                    </button>
-                  </form>
+                  <p className="mb-4 text-xs text-gray-500 lg:hidden">
+                    👉 Type your citation into the footnote in the Word simulator below, then submit.
+                  </p>
+                  <div
+                    className={`mb-4 rounded-lg border px-4 py-3 text-sm ${
+                      exerciseDoc.footnoteText?.trim()
+                        ? 'border-emerald-400 bg-emerald-400/10 text-emerald-300'
+                        : 'border-gray-600 text-gray-400'
+                    }`}
+                  >
+                    {exerciseDoc.footnoteText?.trim()
+                      ? `Footnote: ${exerciseDoc.footnoteText}`
+                      : 'Type the citation into the footnote on the right →'}
+                  </div>
+                  <button
+                    onClick={submitExercise}
+                    disabled={!exerciseDoc.footnoteText?.trim()}
+                    className="w-full rounded-lg bg-docket-gold px-6 py-3 font-semibold text-docket-navy transition hover:bg-docket-gold2 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    Submit
+                  </button>
                 </div>
               )}
 
@@ -285,11 +289,14 @@ export default function ReferencesGuidePage() {
             <WordSimulator
               steps={simSteps}
               resetKey={simResetKey}
+              editable={stage === 'exercise'}
+              editorKind="citation"
+              seed={guideFinalExercise.sim}
+              onDocChange={setExerciseDoc}
+              instructions="Type the full OSCOLA citation straight into the footnote below, exactly as you would in Word."
               idleMessage={
-                stage === 'exercise'
-                  ? "Now it's your turn — write the citation on the left. This screen will show the model answer once you submit."
-                  : stage === 'results'
-                  ? undefined
+                stage === 'results'
+                  ? 'Nice work — check your marks and the model answer on the left.'
                   : 'The document will appear here as each lesson plays.'
               }
             />

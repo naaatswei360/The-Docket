@@ -9,10 +9,10 @@ import WordSimulator from '../../components/WordSimulator';
 import {
   tocLessons,
   tocFinalExercise,
-  gradeTocFinalExercise,
+  gradeTocBuild,
   toaLessons,
   toaFinalExercise,
-  gradeToaFinalExercise,
+  gradeToaBuild,
 } from '../../lib/tocToaGuide';
 
 const TRACKS = {
@@ -22,7 +22,8 @@ const TRACKS = {
     icon: '📑',
     lessons: tocLessons,
     finalExercise: tocFinalExercise,
-    grade: gradeTocFinalExercise,
+    grade: gradeTocBuild,
+    editorKind: 'toc',
     blurb: 'Heading styles, paragraph marks, and an auto-updating, clickable contents page.',
   },
   toa: {
@@ -31,7 +32,8 @@ const TRACKS = {
     icon: '⚖️',
     lessons: toaLessons,
     finalExercise: toaFinalExercise,
-    grade: gradeToaFinalExercise,
+    grade: gradeToaBuild,
+    editorKind: 'toa',
     blurb: 'Mark citations, group them by category, and build a table a judge can navigate.',
   },
 };
@@ -49,7 +51,7 @@ export default function TocToaGuidePage() {
   const [lessonScore, setLessonScore] = useState(0);
   const [showHint, setShowHint] = useState(false);
 
-  const [exerciseAnswer, setExerciseAnswer] = useState('');
+  const [exerciseDoc, setExerciseDoc] = useState({});
   const [exerciseResult, setExerciseResult] = useState(null);
   const [saveStatus, setSaveStatus] = useState('idle');
   const [copied, setCopied] = useState(false);
@@ -101,10 +103,8 @@ export default function TocToaGuidePage() {
     }
   }
 
-  function submitExercise(e) {
-    e.preventDefault();
-    if (!exerciseAnswer.trim()) return;
-    const result = config.grade(exerciseAnswer);
+  function submitExercise() {
+    const result = config.grade(exerciseDoc);
     setExerciseResult(result);
     setStage('results');
   }
@@ -134,7 +134,7 @@ export default function TocToaGuidePage() {
     setCheckInChoice(null);
     setInteractionDone(false);
     setLessonScore(0);
-    setExerciseAnswer('');
+    setExerciseDoc({});
     setExerciseResult(null);
     setSaveStatus('idle');
     setShowHint(false);
@@ -306,22 +306,50 @@ export default function TocToaGuidePage() {
                     <p className="mb-1 text-xs uppercase tracking-widest text-docket-gold">Build your own</p>
                     <h2 className="mb-4 text-xl font-bold text-white">Your turn</h2>
                     <p className="mb-6 text-sm text-gray-300">{config.finalExercise.prompt}</p>
-                    <form onSubmit={submitExercise}>
-                      <textarea
-                        value={exerciseAnswer}
-                        onChange={(e) => setExerciseAnswer(e.target.value)}
-                        rows={4}
-                        placeholder="Type your answer…"
-                        className="mb-4 w-full rounded-lg border border-gray-500 bg-white px-3 py-3 text-docket-navy"
-                      />
-                      <button
-                        type="submit"
-                        disabled={!exerciseAnswer.trim()}
-                        className="w-full rounded-lg bg-docket-gold px-6 py-3 font-semibold text-docket-navy transition hover:bg-docket-gold2 disabled:opacity-60"
-                      >
-                        Submit
-                      </button>
-                    </form>
+
+                    {track === 'toc' && (
+                      <ul className="mb-4 space-y-1 text-sm">
+                        <li className={exerciseDoc.blocks?.some((b) => b.style === 'h1') ? 'text-emerald-400' : 'text-gray-500'}>
+                          {exerciseDoc.blocks?.some((b) => b.style === 'h1') ? '✓' : '○'} Heading 1 added
+                        </li>
+                        <li className={exerciseDoc.blocks?.some((b) => b.style === 'h2') ? 'text-emerald-400' : 'text-gray-500'}>
+                          {exerciseDoc.blocks?.some((b) => b.style === 'h2') ? '✓' : '○'} Heading 2 added
+                        </li>
+                        <li className={exerciseDoc.tocInserted ? 'text-emerald-400' : 'text-gray-500'}>
+                          {exerciseDoc.tocInserted ? '✓' : '○'} Table of Contents inserted
+                        </li>
+                        <li className={exerciseDoc.tocInserted && !exerciseDoc.tocStale ? 'text-emerald-400' : 'text-gray-500'}>
+                          {exerciseDoc.tocInserted && !exerciseDoc.tocStale ? '✓' : '○'} Table up to date
+                        </li>
+                      </ul>
+                    )}
+
+                    {track === 'toa' && (
+                      <ul className="mb-4 space-y-1 text-sm">
+                        <li className={exerciseDoc.footnoteText?.trim() ? 'text-emerald-400' : 'text-gray-500'}>
+                          {exerciseDoc.footnoteText?.trim() ? '✓' : '○'} Citation typed into footnote
+                        </li>
+                        <li className={exerciseDoc.marked ? 'text-emerald-400' : 'text-gray-500'}>
+                          {exerciseDoc.marked ? '✓' : '○'} Marked{exerciseDoc.category ? ` — ${exerciseDoc.category}` : ''}
+                        </li>
+                        <li className={exerciseDoc.toaInserted ? 'text-emerald-400' : 'text-gray-500'}>
+                          {exerciseDoc.toaInserted ? '✓' : '○'} Table of Authorities inserted
+                        </li>
+                        <li className={exerciseDoc.toaInserted && !exerciseDoc.toaStale ? 'text-emerald-400' : 'text-gray-500'}>
+                          {exerciseDoc.toaInserted && !exerciseDoc.toaStale ? '✓' : '○'} Table up to date
+                        </li>
+                      </ul>
+                    )}
+
+                    <p className="mb-4 text-xs text-gray-500 lg:hidden">
+                      👉 Build it in the Word simulator below, then submit.
+                    </p>
+                    <button
+                      onClick={submitExercise}
+                      className="w-full rounded-lg bg-docket-gold px-6 py-3 font-semibold text-docket-navy transition hover:bg-docket-gold2"
+                    >
+                      Submit
+                    </button>
                   </div>
                 )}
 
@@ -386,9 +414,14 @@ export default function TocToaGuidePage() {
                 steps={simSteps}
                 resetKey={simResetKey}
                 onInteract={handleInteract}
+                editable={stage === 'exercise'}
+                editorKind={config?.editorKind}
+                seed={config?.finalExercise?.sim || {}}
+                onDocChange={setExerciseDoc}
+                instructions={config?.finalExercise?.prompt}
                 idleMessage={
-                  stage === 'exercise'
-                    ? 'This screen will show the model answer once you submit.'
+                  stage === 'results'
+                    ? 'Nice work — check your marks and the model answer on the left.'
                     : 'The document will appear here as each lesson plays.'
                 }
               />
