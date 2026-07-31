@@ -96,7 +96,7 @@ export default function ReferencesGuidePage() {
 
   return (
     <main className="min-h-screen bg-[#050810] px-6 py-10">
-      <div className="mx-auto max-w-5xl">
+      <div className="mx-auto max-w-[1240px]">
         <Link
           href="/references"
           className="mb-6 inline-block text-sm text-gray-400 underline hover:text-gray-200"

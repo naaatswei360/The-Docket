@@ -534,14 +534,16 @@ export default function WordSimulator({
         <div className="flex items-center justify-between gap-4 border-b border-white/10 bg-[#f3f2f1] px-4 py-1.5 text-[11px] text-[#333]">
           <div className="flex gap-4">
             {RIBBON_TABS.map((tab) => (
-              <span
+              <button
                 key={tab}
+                type="button"
+                onClick={() => setRibbon(tab)}
                 className={`pb-1 transition-colors ${
-                  ribbon === tab ? 'border-b-2 border-[#2b579a] font-semibold text-[#2b579a]' : 'text-gray-500'
+                  ribbon === tab ? 'border-b-2 border-[#2b579a] font-semibold text-[#2b579a]' : 'text-gray-500 hover:text-gray-700'
                 }`}
               >
                 {tab}
-              </span>
+              </button>
             ))}
           </div>
 
