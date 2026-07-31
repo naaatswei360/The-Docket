@@ -10,6 +10,23 @@ export default function EntryPage() {
   const router = useRouter();
 
   useEffect(() => {
+    // Supabase is supposed to send confirmation links straight to
+    // /auth/confirmed, but if it ever falls back to the Site URL (the
+    // homepage) instead — e.g. a link resent from the Supabase dashboard —
+    // the confirmation payload (a `code` param, or tokens in the URL hash)
+    // ends up here. Forward it on to /auth/confirmed so the person still
+    // sees the "you're verified" screen instead of being silently skipped
+    // straight to /plans.
+    const hasConfirmationPayload =
+      window.location.search.includes('code=') ||
+      window.location.hash.includes('access_token') ||
+      window.location.hash.includes('error_description');
+
+    if (hasConfirmationPayload) {
+      router.replace(`/auth/confirmed${window.location.search}${window.location.hash}`);
+      return;
+    }
+
     if (!loading && session) {
       router.replace('/plans');
     }
