@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '../../components/AuthProvider';
 import { getTodaysTip } from '../../lib/dailyTip';
 import { supabase } from '../../lib/supabaseClient';
-import Avatar from '../../components/Avatar';
 
 export default function HomePage() {
 const { user, loading } = useAuth();
@@ -24,7 +23,7 @@ useEffect(() => {
 if (!user) return;
 supabase
 .from('profiles')
-.select('code_name, avatar_seed')
+.select('code_name')
 .eq('user_id', user.id)
 .maybeSingle()
 .then(({ data }) => setProfile(data));
@@ -117,44 +116,19 @@ Premium
 <div className="mb-8 flex items-center justify-between">
 <div>
 <h1 className="text-3xl font-bold tracking-wide text-docket-gold">THE DOCKET</h1>
-{profile && (
-<Link
-href="/profile"
-className="mt-1 flex items-center gap-2 text-sm text-gray-300 hover:text-docket-gold"
->
-<Avatar codeName={profile.code_name} avatarSeed={profile.avatar_seed} size="sm" />
-{profile.code_name}
-</Link>
-)}
+{profile && <p className="text-sm text-gray-300">{profile.code_name}</p>}
 </div>
 
 <div className="flex items-center gap-6 text-xs font-semibold uppercase tracking-widest">
-<Link href="/profile" className="text-gray-200 hover:text-docket-gold">
+<Link href="/retainer" className="text-gray-200 hover:text-docket-gold">
 Profile
 </Link>
 <span className="cursor-not-allowed text-gray-500 opacity-60">
 Rankings <span className="text-[10px]">(soon)</span>
 </span>
-<Link href="/help" className="text-gray-200 hover:text-docket-gold">
-Customer Support
-</Link>
 <Link href="/retainer" className="text-gray-200 hover:text-docket-gold">
 Settings
 </Link>
-<button
-onClick={async () => {
-if (user && typeof window !== 'undefined') {
-window.sessionStorage.removeItem(`docket_shown_session_${user.id}`);
-}
-await supabase.auth.signOut();
-if (typeof window !== 'undefined') {
-window.location.href = '/login';
-}
-}}
-className="text-gray-200 hover:text-docket-gold"
->
-Log Out
-</button>
 </div>
 </div>
 
@@ -168,7 +142,7 @@ Daily Docket Tip
 
 {/* Memorial / Oral / References / Hot Seat choice */}
 {view === 'choose' && (
-<div className="mx-auto mb-8 grid max-w-6xl gap-4 sm:grid-cols-2 lg:grid-cols-5">
+<div className="mx-auto mb-8 grid max-w-5xl gap-4 sm:grid-cols-2 lg:grid-cols-4">
 <button
 onClick={() => setView('memorial-type')}
 className="rounded-xl border border-white/10 bg-docket-navy/70 p-6 text-left backdrop-blur-sm transition hover:border-docket-gold"
@@ -199,17 +173,6 @@ className="rounded-xl border border-white/10 bg-docket-navy/70 p-6 text-left bac
 <h2 className="mb-1 font-semibold text-white">References</h2>
 <p className="text-sm text-gray-400">
 Learn, build, and test OSCOLA citations.
-</p>
-</Link>
-
-<Link
-href="/tables"
-className="rounded-xl border border-white/10 bg-docket-navy/70 p-6 text-left backdrop-blur-sm transition hover:border-docket-gold"
->
-<div className="mb-3 text-2xl">📑</div>
-<h2 className="mb-1 font-semibold text-white">Tables</h2>
-<p className="text-sm text-gray-400">
-Build a live Table of Contents and Table of Authorities in a simulated Word doc.
 </p>
 </Link>
 
