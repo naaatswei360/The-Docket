@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '../../components/AuthProvider';
 import { getTodaysTip } from '../../lib/dailyTip';
 import { supabase } from '../../lib/supabaseClient';
+import Avatar from '../../components/Avatar';
 
 export default function HomePage() {
 const { user, loading } = useAuth();
@@ -23,7 +24,7 @@ useEffect(() => {
 if (!user) return;
 supabase
 .from('profiles')
-.select('code_name')
+.select('code_name, avatar_seed')
 .eq('user_id', user.id)
 .maybeSingle()
 .then(({ data }) => setProfile(data));
@@ -116,10 +117,21 @@ Premium
 <div className="mb-8 flex items-center justify-between">
 <div>
 <h1 className="text-3xl font-bold tracking-wide text-docket-gold">THE DOCKET</h1>
-{profile && <p className="text-sm text-gray-300">{profile.code_name}</p>}
+{profile && (
+<Link
+href="/profile"
+className="mt-1 flex items-center gap-2 text-sm text-gray-300 hover:text-docket-gold"
+>
+<Avatar codeName={profile.code_name} avatarSeed={profile.avatar_seed} size="sm" />
+{profile.code_name}
+</Link>
+)}
 </div>
 
 <div className="flex items-center gap-6 text-xs font-semibold uppercase tracking-widest">
+<Link href="/profile" className="text-gray-200 hover:text-docket-gold">
+Profile
+</Link>
 <span className="cursor-not-allowed text-gray-500 opacity-60">
 Rankings <span className="text-[10px]">(soon)</span>
 </span>
