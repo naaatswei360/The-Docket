@@ -39,7 +39,7 @@ export default function LoginPage() {
       return;
     }
 
-    router.push('/plans');
+    router.push('/home');
   }
 
   return (
