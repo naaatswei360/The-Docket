@@ -126,7 +126,7 @@ Profile
 <span className="cursor-not-allowed text-gray-500 opacity-60">
 Rankings <span className="text-[10px]">(soon)</span>
 </span>
-<Link href="/retainer" className="text-gray-200 hover:text-docket-gold">
+<Link href="/settings" className="text-gray-200 hover:text-docket-gold">
 Settings
 </Link>
 </div>
