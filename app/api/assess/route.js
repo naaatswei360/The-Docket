@@ -25,7 +25,7 @@ Format your response as plain text with a clear heading for each of the five cri
 
 export async function POST(req) {
   try {
-    const { userId, mootId, draftStage, memorialText } = await req.json();
+    const { userId, mootId, draftStage, memorialText, fileName, filePath } = await req.json();
 
     if (!userId || !mootId || !draftStage || !memorialText) {
       return Response.json({ error: 'Missing required fields.' }, { status: 400 });
@@ -94,6 +94,8 @@ ${memorialText}
         draft_stage: draftStage,
         memorial_text: memorialText,
         feedback_text: feedback,
+        file_name: fileName || null,
+        file_path: filePath || null,
       })
       .select()
       .single();

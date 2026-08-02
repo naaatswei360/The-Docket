@@ -12,7 +12,11 @@ export default function MemorialPage() {
   const router = useRouter();
 
   const [moot, setMoot] = useState(null);
+  const [inputMode, setInputMode] = useState('type'); // 'type' | 'upload'
   const [memorialText, setMemorialText] = useState('');
+  const [uploadedFile, setUploadedFile] = useState(null); // { name, path }
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState('');
   const [draftStage, setDraftStage] = useState('first');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -35,6 +39,42 @@ export default function MemorialPage() {
       });
   }, []);
 
+  async function handleFileChange(e) {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+
+    setUploadError('');
+    setUploading(true);
+    setUploadedFile(null);
+
+    try {
+      const ext = file.name.split('.').pop().toLowerCase();
+      if (!['docx', 'pdf'].includes(ext)) {
+        throw new Error('Please upload a .docx or .pdf file.');
+      }
+
+      // 1) Extract text first — if we can't read it, no point uploading it.
+      const formData = new FormData();
+      formData.append('file', file);
+      const extractRes = await fetch('/api/extract-memorial', { method: 'POST', body: formData });
+      const extractData = await extractRes.json();
+      if (!extractRes.ok) throw new Error(extractData.error || 'Could not read that file.');
+
+      // 2) Keep the original file in Storage so it's not lost — same
+      // format the person actually submitted, not just the extracted text.
+      const path = `${user.id}/${Date.now()}-${file.name}`;
+      const { error: uploadErr } = await supabase.storage.from('memorials').upload(path, file);
+      if (uploadErr) throw new Error(uploadErr.message);
+
+      setMemorialText(extractData.text);
+      setUploadedFile({ name: file.name, path });
+    } catch (err) {
+      setUploadError(err.message);
+    } finally {
+      setUploading(false);
+    }
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
     if (!user || !moot) return;
@@ -51,6 +91,8 @@ export default function MemorialPage() {
           mootId: moot.id,
           draftStage,
           memorialText,
+          fileName: uploadedFile?.name || null,
+          filePath: uploadedFile?.path || null,
         }),
       });
 
@@ -100,14 +142,66 @@ export default function MemorialPage() {
               className="mb-4 w-full rounded-lg border border-gray-600 bg-white px-3 py-2 text-sm"
             />
 
-            <label className="mb-1 block text-sm text-gray-300">Your memorial</label>
+            <div className="mb-4 flex gap-2">
+              <button
+                type="button"
+                onClick={() => setInputMode('type')}
+                className={`rounded-lg border px-4 py-2 text-sm font-medium transition ${
+                  inputMode === 'type'
+                    ? 'border-docket-gold bg-docket-gold/10 text-docket-gold'
+                    : 'border-gray-600 text-gray-300 hover:border-gray-400'
+                }`}
+              >
+                Type it
+              </button>
+              <button
+                type="button"
+                onClick={() => setInputMode('upload')}
+                className={`rounded-lg border px-4 py-2 text-sm font-medium transition ${
+                  inputMode === 'upload'
+                    ? 'border-docket-gold bg-docket-gold/10 text-docket-gold'
+                    : 'border-gray-600 text-gray-300 hover:border-gray-400'
+                }`}
+              >
+                Upload a document
+              </button>
+            </div>
+
+            {inputMode === 'upload' && (
+              <div className="mb-4 rounded-lg border border-dashed border-gray-500 bg-docket-navy2 p-5">
+                <label className="mb-1 block text-sm text-gray-300">Upload your memorial (.docx or .pdf)</label>
+                <p className="mb-3 text-xs text-gray-500">
+                  Keeps your formatting intact — we'll pull the text out to grade it, and keep the original file too.
+                </p>
+                <input
+                  type="file"
+                  accept=".docx,.pdf"
+                  onChange={handleFileChange}
+                  disabled={uploading}
+                  className="mb-2 block w-full text-sm text-gray-300 file:mr-3 file:rounded-lg file:border-0 file:bg-docket-gold file:px-4 file:py-2 file:text-sm file:font-semibold file:text-docket-navy hover:file:bg-docket-gold2"
+                />
+                {uploading && <p className="text-xs text-gray-400">Reading your file…</p>}
+                {uploadError && <p className="text-xs text-red-400">{uploadError}</p>}
+                {uploadedFile && !uploading && (
+                  <p className="text-xs text-emerald-400">
+                    ✓ {uploadedFile.name} uploaded and read — review the extracted text below before submitting.
+                  </p>
+                )}
+              </div>
+            )}
+
+            <label className="mb-1 block text-sm text-gray-300">
+              {inputMode === 'upload' ? 'Extracted text (edit if anything looks off)' : 'Your memorial'}
+            </label>
             <textarea
               required
               rows={12}
               value={memorialText}
               onChange={(e) => setMemorialText(e.target.value)}
               className="mb-4 w-full rounded-lg border border-gray-600 bg-white px-3 py-2 text-sm"
-              placeholder="Write or paste your memorial here…"
+              placeholder={
+                inputMode === 'upload' ? 'Upload a file above to fill this in…' : 'Write or paste your memorial here…'
+              }
             />
 
             <label className="mb-1 block text-sm text-gray-300">Draft stage</label>
@@ -148,6 +242,8 @@ export default function MemorialPage() {
                 onClick={() => {
                   setFeedback('');
                   setMemorialText('');
+                  setUploadedFile(null);
+                  setInputMode('type');
                 }}
                 className="flex-1 rounded-lg border border-docket-gold/50 px-5 py-3 font-semibold text-docket-gold hover:bg-docket-navy2"
               >

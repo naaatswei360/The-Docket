@@ -12,6 +12,18 @@ export default function SubmissionsPage() {
   const [subs, setSubs] = useState(null);
   const [openId, setOpenId] = useState(null);
 
+  async function downloadFile(path, name) {
+    const { data, error } = await supabase.storage.from('memorials').createSignedUrl(path, 60);
+    if (error || !data?.signedUrl) {
+      alert("Couldn't generate a download link — try again.");
+      return;
+    }
+    const a = document.createElement('a');
+    a.href = data.signedUrl;
+    a.download = name;
+    a.click();
+  }
+
   useEffect(() => {
     if (!loading && !user) router.replace('/login');
   }, [loading, user, router]);
@@ -20,7 +32,7 @@ export default function SubmissionsPage() {
     if (!user) return;
     supabase
       .from('submissions')
-      .select('id, draft_stage, memorial_text, feedback_text, created_at, moots(title)')
+      .select('id, draft_stage, memorial_text, feedback_text, created_at, file_name, file_path, moots(title)')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
       .then(({ data }) => setSubs(data || []));
@@ -58,6 +70,14 @@ export default function SubmissionsPage() {
 
               {openId === s.id && (
                 <div className="mt-4 border-t border-gray-700 pt-4">
+                  {s.file_name && (
+                    <button
+                      onClick={() => downloadFile(s.file_path, s.file_name)}
+                      className="mb-4 inline-block rounded-lg border border-docket-gold/50 px-3 py-1.5 text-xs font-semibold text-docket-gold hover:bg-docket-navy"
+                    >
+                      ⬇ Download original file ({s.file_name})
+                    </button>
+                  )}
                   <h3 className="mb-1 text-sm font-semibold text-gray-300">Memorial</h3>
                   <p className="mb-4 whitespace-pre-wrap text-sm text-gray-400">{s.memorial_text}</p>
                   <h3 className="mb-1 text-sm font-semibold text-gray-300">Feedback</h3>
