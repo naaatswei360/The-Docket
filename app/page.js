@@ -50,8 +50,7 @@ export default function EntryPage() {
         </p>
         <h1 className="mb-3 text-5xl font-extrabold text-white drop-shadow-lg">The Docket</h1>
         <p className="mb-10 text-gray-200 drop-shadow">
-          Sign up and you'll be assigned a code name and a newcomer number the moment
-          you join. Log back in any time to pick up where you left off.
+          Sign up and you'll be assigned a code name the moment you join.
         </p>
 
         <div className="flex flex-col gap-4">
